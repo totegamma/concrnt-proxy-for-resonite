@@ -1,0 +1,25 @@
+{
+  "name": "concrnt-proxy-for-resonite",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "tsc && node main.js",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@concrnt/client": "^0.0.15",
+    "@concrnt/worldlib": "^0.1.1",
+    "@types/express": "^5.0.0",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "json2emap": "^0.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.2",
+    "typescript": "^5.7.3"
+  }
+}
