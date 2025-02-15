@@ -95,8 +95,8 @@ const getTimeline = async (client: Client, timelineFQID: string): Promise<Respon
             const author = await client.api.getProfileBySemanticID<ProfileSchema>('world.concrnt.p', e.owner)
             const msgBase = await client.api.getMessageWithAuthor<any>(e.resourceID, e.owner)
 
-            let name = author.parsedDoc.body.username ?? msgBase.parsedDoc.body.profileOverride?.username ?? 'Anonymous'
-            let avatar = author.parsedDoc.body.avatar ?? msgBase.parsedDoc.body.profileOverride?.avatar ?? ''
+            let name = msgBase.parsedDoc.body.profileOverride?.username ?? author.parsedDoc.body.username ?? 'Anonymous'
+            let avatar = msgBase.parsedDoc.body.profileOverride?.avatar ?? author.parsedDoc.body.avatar ??  ''
 
             if (msgBase.parsedDoc.body.profileOverride?.profileID) {
                 const profile = await client.api.getProfile<ProfileSchema>(msgBase.parsedDoc.body.profileOverride.profileID, msgBase.author)
@@ -174,14 +174,14 @@ Client.createFromSubkey(subkey).then((c) => {
     client = c
 })
 
-app.get('/timelines/:timelineFQID', async (req, res) => {
+app.get('/timeline/:timelineFQID', async (req, res) => {
     const timelineFQID = req.params.timelineFQID
     const response = await getTimeline(client, timelineFQID)
 
     res.send(json2emap(response))
 })
 
-app.post('/timelines/:timelineFQID', postLimiter, async (req, res) => {
+app.post('/timeline/:timelineFQID', postLimiter, async (req, res) => {
     const timelineFQID = req.params.timelineFQID
 
     const timeline = await client.getTimeline<CommunityTimelineSchema>(timelineFQID)
@@ -199,7 +199,7 @@ app.post('/timelines/:timelineFQID', postLimiter, async (req, res) => {
     const avatar = 'https://assets.resonite.com/' + avatarResDB.split('///')[1].split('.')[0]
     const message = req.body.message
 
-    client.createMarkdownCrnt(message, [timelineFQID], {
+    await client.createMarkdownCrnt(message, [timelineFQID], {
         profileOverride: {
             username: username,
             avatar: avatar
