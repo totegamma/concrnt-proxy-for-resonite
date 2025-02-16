@@ -174,6 +174,13 @@ Client.createFromSubkey(subkey).then((c) => {
     client = c
 })
 
+
+app.get('/test', (req, res) => {
+    console.log(req.ip)
+    console.log(req.headers)
+    res.send('ok')
+})
+
 app.get('/timeline/:timelineFQID', async (req, res) => {
     const timelineFQID = req.params.timelineFQID
     const response = await getTimeline(client, timelineFQID)
