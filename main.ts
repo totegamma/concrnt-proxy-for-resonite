@@ -44,7 +44,8 @@ interface Entry {
 const postLimiter = rateLimit({
   windowMs: 5 * 60 * 1000, // 5 minutes
   max: 2,
-  message: '5分間に2回しか投稿できません。少し待ってから再度お試しください。'
+  message: '5分間に2回しか投稿できません。少し待ってから再度お試しください。',
+  keyGenerator: (req) => (req.headers['x-forwarded-for'] as string) ?? req.ip
 });
 
 const nowEpsilon = 3000 // 3 seconds
