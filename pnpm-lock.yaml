@@ -12,8 +12,8 @@ importers:
         specifier: ^0.0.15
         version: 0.0.15
       '@concrnt/worldlib':
-        specifier: ^0.1.1
-        version: 0.1.1
+        specifier: ^0.1.3
+        version: 0.1.3
       '@types/express':
         specifier: ^5.0.0
         version: 5.0.0
@@ -42,8 +42,8 @@ packages:
   '@concrnt/client@0.0.15':
     resolution: {integrity: sha512-ya7863hgymW+Bh/VBLfu3MDlSZ4lyu5EkE3NG6dfCzvIuGit9Snc/nw5DaXD39GKdiEUflzpi2Mh3smeSg4GMQ==}
 
-  '@concrnt/worldlib@0.1.1':
-    resolution: {integrity: sha512-xPvZezcjy3jvY+ehABKWBkcGpUwU9bwOL5bLxA9ErTrekLlz1/D21W7I6MPfP/PVhKxp1ysTvR0MAW0OELoG5Q==}
+  '@concrnt/worldlib@0.1.3':
+    resolution: {integrity: sha512-JOdbt4BLiqrphYYwLpadCVP1gx2rhhBUZjho9+180RuwM+OOEWPzcIyRkkY+gmiScmixdI9DZbIuuGyTzZ3VYg==}
 
   '@cosmjs/amino@0.33.0':
     resolution: {integrity: sha512-a4qnWGzuM2IrlkDTFQmU7bDd+wNIzyvfcRIZ43i00ZHvTEtrCcWopT94rIv/Zy6fdgkhQ3HWrsGVlIPDT/ibRw==}
@@ -479,7 +479,7 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  '@concrnt/worldlib@0.1.1': {}
+  '@concrnt/worldlib@0.1.3': {}
 
   '@cosmjs/amino@0.33.0':
     dependencies:

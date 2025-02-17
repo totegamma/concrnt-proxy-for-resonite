@@ -206,13 +206,33 @@ app.post('/timeline/:timelineFQID', postLimiter, async (req, res) => {
     const avatarResDB = req.body.iconResdb
     const avatar = 'https://assets.resonite.com/' + avatarResDB.split('///')[1].split('.')[0]
     const message = req.body.message
+    const medias: string[] | undefined = req.body.medias
 
-    await client.createMarkdownCrnt(message, [timelineFQID], {
-        profileOverride: {
-            username: username,
-            avatar: avatar
-        }
-    })
+    if (medias && medias.length > 0) {
+
+        const crntMedias = medias.map((m: string) => {
+            return {
+                mediaURL: m,
+                mediaType: 'image'
+            }
+        })
+
+        await client.createMediaCrnt(message, [timelineFQID], {
+            profileOverride: {
+                username: username,
+                avatar: avatar
+            },
+            medias: crntMedias
+        })
+
+    } else {
+        await client.createMarkdownCrnt(message, [timelineFQID], {
+            profileOverride: {
+                username: username,
+                avatar: avatar
+            }
+        })
+    }
 
     res.send('ok')
 })
