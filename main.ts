@@ -42,6 +42,7 @@ interface Entry {
     url?: {
         url: string
         thumbnail: string
+        title: string
         description: string
     }
 }
@@ -162,6 +163,7 @@ const getTimeline = async (client: Client, timelineFQID: string): Promise<Respon
                     summary = {
                         url: url,
                         thumbnail: res.thumbnail,
+                        title: res.title,
                         description: res.description
                     }
                 } catch (e) {
