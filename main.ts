@@ -7,6 +7,8 @@ import rateLimit from 'express-rate-limit'
 const subkey = process.env.SUBKEY
 const proxyIP = process.env.PROXY_IP
 
+const imageProxy = 'https://denken.concrnt.net/image/x/'
+
 if (!subkey) {
     console.error('SUBKEY not set')
     process.exit(1)
@@ -150,7 +152,7 @@ const getTimeline = async (client: Client, timelineFQID: string): Promise<Respon
 
             for (const [reaction, count] of Object.entries(assCounts)) {
                 reactions.push({
-                    url: reaction,
+                    url: imageProxy + reaction,
                     count: count
                 })
             }
@@ -160,9 +162,11 @@ const getTimeline = async (client: Client, timelineFQID: string): Promise<Respon
             if (url) {
                 try {
                     const res = await fetch(`https://denken.concrnt.net/summary?url=${url}`).then(res => res.json())
+                    let thumbnail = res.thumbnail ?? res.icon
+                    if (thumbnail) thumbnail = imageProxy + thumbnail
                     summary = {
                         url: url,
-                        thumbnail: res.thumbnail,
+                        thumbnail: thumbnail,
                         title: res.title,
                         description: res.description
                     }
@@ -177,7 +181,7 @@ const getTimeline = async (client: Client, timelineFQID: string): Promise<Respon
                     const message = msgBase as Message<MarkdownMessageSchema>
                     entries.push({
                         name: name,
-                        avatar: avatar,
+                        avatar: imageProxy + avatar,
                         message: message.parsedDoc.body.body,
                         timestamp: humanReadableTimeDiff(new Date(e.cdate)),
                         medias: [],
@@ -193,13 +197,13 @@ const getTimeline = async (client: Client, timelineFQID: string): Promise<Respon
                     for (const media of message.parsedDoc.body.medias ?? []) {
                         medias.push({
                             type: media.mediaType,
-                            url: media.mediaURL
+                            url: imageProxy + media.mediaURL
                         })
                     }
 
                     entries.push({
                         name: name,
-                        avatar: avatar,
+                        avatar: imageProxy + avatar,
                         message: message.parsedDoc.body.body,
                         medias: medias,
                         timestamp: humanReadableTimeDiff(new Date(e.cdate)),
