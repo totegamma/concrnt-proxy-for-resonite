@@ -160,7 +160,7 @@ const getTimeline = async (client: Client, timelineFQID: string): Promise<Respon
                 try {
                     const res = await fetch(`https://denken.concrnt.net/summary?url=${url}`).then(res => res.json())
                     summary = {
-                        url: res.url,
+                        url: url,
                         thumbnail: res.thumbnail,
                         description: res.description
                     }
