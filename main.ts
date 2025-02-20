@@ -39,6 +39,11 @@ interface Entry {
     medias: Media[]
     timestamp: string
     reactions: Reaction[]
+    url?: {
+        url: string
+        thumbnail: string
+        description: string
+    }
 }
 
 const postLimiter = rateLimit({
@@ -81,6 +86,36 @@ export const humanReadableTimeDiff = (time: Date): string => {
     }
 }
 
+const extractUrls = (text: string): string => {
+    // strip markdown image syntax
+    let replaced = text.replace(/!\[.*\]\(.*\)/g, '')
+
+    // strip codeblock
+    replaced = replaced.replace(/```[\s\S]*?```/g, '')
+
+    // strip inline code
+    replaced = replaced.replace(/`[\s\S]*?`/g, '')
+
+    // strip img tag
+    replaced = replaced.replace(/<img.*?>/g, '')
+
+    // strip social tag
+    replaced = replaced.replace(/<social.*?>.*?<\/social>/g, '')
+
+    // strip emojipack tag
+    replaced = replaced.replace(/<emojipack.*?\/>/g, '')
+
+    // replace markdown link syntax
+    replaced = replaced.replace(/\[(.*)\]\((.*)\)/g, '$2')
+
+    // strip a tag body
+    replaced = replaced.replace(/<a(.*?)>.*?<\/a>/g, '$1')
+
+    // extract urls
+    const urls = replaced.match(/(https?:\/\/[\w.\-?=/&%#,@]+)/g) ?? []
+
+    return urls[0] ?? ''
+}
 
 const getTimeline = async (client: Client, timelineFQID: string): Promise<Response> => {
 
@@ -119,6 +154,21 @@ const getTimeline = async (client: Client, timelineFQID: string): Promise<Respon
                 })
             }
 
+            const url = extractUrls(msgBase.parsedDoc.body.body)
+            let summary = undefined
+            if (url) {
+                try {
+                    const res = await fetch(`https://denken.concrnt.net/summary?url=${url}`).then(res => res.json())
+                    summary = {
+                        url: res.url,
+                        thumbnail: res.thumbnail,
+                        description: res.description
+                    }
+                } catch (e) {
+                    console.error(e)
+                }
+            }
+
             switch (msgBase.schema) {
                 case Schemas.markdownMessage: 
                 case Schemas.plaintextMessage: {
@@ -129,7 +179,8 @@ const getTimeline = async (client: Client, timelineFQID: string): Promise<Respon
                         message: message.parsedDoc.body.body,
                         timestamp: humanReadableTimeDiff(new Date(e.cdate)),
                         medias: [],
-                        reactions: reactions
+                        reactions: reactions,
+                        url: summary
                     })
                     break
                 }
@@ -150,7 +201,8 @@ const getTimeline = async (client: Client, timelineFQID: string): Promise<Respon
                         message: message.parsedDoc.body.body,
                         medias: medias,
                         timestamp: humanReadableTimeDiff(new Date(e.cdate)),
-                        reactions: reactions
+                        reactions: reactions,
+                        url: summary
                     })
                 }
 
