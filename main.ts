@@ -203,15 +203,27 @@ const getTimeline = async (client: Client, timelineFQID: string): Promise<Respon
                     const url = extractUrls(originalMsg.parsedDoc.body.body)
                     const summary = await getSummary(url)
 
+                    const medias: Media[] = []
+                    if (originalMsg.schema === Schemas.mediaMessage) {
+                        const mediaMsg = originalMsg as Message<MediaMessageSchema>
+                        for (const media of mediaMsg.parsedDoc.body.medias ?? []) {
+                            medias.push({
+                                type: media.mediaType,
+                                url: imageProxy + media.mediaURL
+                            })
+                        }
+                    }
+
                     entries.push({
                         name: name,
                         avatar: imageProxy + avatar,
                         message: originalMsg.parsedDoc.body.body,
                         timestamp: humanReadableTimeDiff(new Date(e.cdate)),
-                        medias: [],
+                        medias: medias,
                         reactions: reactions,
-                        url: summary
+                        url: summary,
                     })
+                    break
                 }
 
                 case Schemas.mediaMessage: {
@@ -237,6 +249,7 @@ const getTimeline = async (client: Client, timelineFQID: string): Promise<Respon
                         reactions: reactions,
                         url: summary
                     })
+                    break
                 }
             }
         } catch (e) {
