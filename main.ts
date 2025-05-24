@@ -1,5 +1,5 @@
 import { Message } from '@concrnt/client';
-import { Client, CommunityTimelineSchema, MarkdownMessageSchema, MediaMessageSchema, ProfileSchema, Schemas } from '@concrnt/worldlib'
+import { Client, CommunityTimelineSchema, MarkdownMessageSchema, MediaMessageSchema, ProfileSchema, RerouteMessageSchema, Schemas } from '@concrnt/worldlib'
 import express from 'express'
 import json2emap from "json2emap";
 import rateLimit from 'express-rate-limit'
@@ -7,7 +7,7 @@ import rateLimit from 'express-rate-limit'
 const subkey = process.env.SUBKEY
 const proxyIP = process.env.PROXY_IP
 
-const imageProxy = 'https://denken.concrnt.net/image/x/'
+const imageProxy = 'https://denken.concrnt.net/image/x,webp/'
 
 if (!subkey) {
     console.error('SUBKEY not set')
@@ -120,6 +120,23 @@ const extractUrls = (text: string): string => {
     return urls[0] ?? ''
 }
 
+const getSummary = async (url: string): Promise<{ url: string, thumbnail: string, title: string, description: string } | undefined> => {
+    if (!url) return undefined
+    try {
+        const res = await fetch(`https://denken.concrnt.net/summary?url=${url}`).then(res => res.json())
+        let thumbnail = res.thumbnail ?? res.icon
+        if (thumbnail) thumbnail = imageProxy + thumbnail
+        return {
+            url: url,
+            thumbnail: thumbnail,
+            title: res.title,
+            description: res.description
+        }
+    } catch (e) {
+        console.error(e)
+    }
+}
+
 const getTimeline = async (client: Client, timelineFQID: string): Promise<Response> => {
 
     const timeline = await client.getTimeline<CommunityTimelineSchema>(timelineFQID)
@@ -157,28 +174,12 @@ const getTimeline = async (client: Client, timelineFQID: string): Promise<Respon
                 })
             }
 
-            const url = extractUrls(msgBase.parsedDoc.body.body)
-            let summary = undefined
-            if (url) {
-                try {
-                    const res = await fetch(`https://denken.concrnt.net/summary?url=${url}`).then(res => res.json())
-                    let thumbnail = res.thumbnail ?? res.icon
-                    if (thumbnail) thumbnail = imageProxy + thumbnail
-                    summary = {
-                        url: url,
-                        thumbnail: thumbnail,
-                        title: res.title,
-                        description: res.description
-                    }
-                } catch (e) {
-                    console.error(e)
-                }
-            }
-
             switch (msgBase.schema) {
                 case Schemas.markdownMessage: 
                 case Schemas.plaintextMessage: {
                     const message = msgBase as Message<MarkdownMessageSchema>
+                    const url = extractUrls(message.parsedDoc.body.body)
+                    const summary = await getSummary(url)
                     entries.push({
                         name: name,
                         avatar: imageProxy + avatar,
@@ -190,6 +191,29 @@ const getTimeline = async (client: Client, timelineFQID: string): Promise<Respon
                     })
                     break
                 }
+
+                case Schemas.rerouteMessage: {
+                    const rerouteMsg = msgBase as Message<RerouteMessageSchema>
+                    const originalMsg = await client.api.getMessageWithAuthor<MarkdownMessageSchema>(rerouteMsg.parsedDoc.body.rerouteMessageId, rerouteMsg.parsedDoc.body.rerouteMessageAuthor)
+                    if (!originalMsg) {
+                        console.error('Original message not found for reroute message', rerouteMsg.parsedDoc.body.rerouteMessageId)
+                        continue
+                    }
+
+                    const url = extractUrls(originalMsg.parsedDoc.body.body)
+                    const summary = await getSummary(url)
+
+                    entries.push({
+                        name: name,
+                        avatar: imageProxy + avatar,
+                        message: originalMsg.parsedDoc.body.body,
+                        timestamp: humanReadableTimeDiff(new Date(e.cdate)),
+                        medias: [],
+                        reactions: reactions,
+                        url: summary
+                    })
+                }
+
                 case Schemas.mediaMessage: {
                     const message = msgBase as Message<MediaMessageSchema>
 
@@ -201,6 +225,9 @@ const getTimeline = async (client: Client, timelineFQID: string): Promise<Respon
                         })
                     }
 
+                    const url = extractUrls(message.parsedDoc.body.body)
+                    const summary = await getSummary(url)
+
                     entries.push({
                         name: name,
                         avatar: imageProxy + avatar,
@@ -211,10 +238,7 @@ const getTimeline = async (client: Client, timelineFQID: string): Promise<Respon
                         url: summary
                     })
                 }
-
             }
-
-
         } catch (e) {
             console.error(e)
         }
