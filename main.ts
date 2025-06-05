@@ -203,6 +203,10 @@ const getTimeline = async (client: Client, timelineFQID: string): Promise<Respon
                     const url = extractUrls(originalMsg.parsedDoc.body.body)
                     const summary = await getSummary(url)
 
+                    const originalAuthor = await client.api.getProfileBySemanticID<ProfileSchema>('world.concrnt.p', originalMsg.author)
+                    const name = originalMsg.parsedDoc.body.profileOverride?.username ?? originalAuthor.parsedDoc.body.username ?? 'Anonymous'
+                    const avatar = originalMsg.parsedDoc.body.profileOverride?.avatar ?? originalAuthor.parsedDoc.body.avatar ?? ''
+
                     const medias: Media[] = []
                     if (originalMsg.schema === Schemas.mediaMessage) {
                         const mediaMsg = originalMsg as Message<MediaMessageSchema>
